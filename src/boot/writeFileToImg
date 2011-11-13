@@ -1,0 +1,2 @@
+#!/bin/sh
+dd if=boot.bin of=Debuger/a.img bs=512 count=1 conv=notrunc
