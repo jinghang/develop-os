@@ -13,6 +13,8 @@ OffsetOfLoader          equ 0100h       ;LOADER.BIN 被加载到的位置 ---- �
 
 RootDirSectors          equ 14          ;根目录占用的扇区数
 FirstSectorOfRootDir    equ 19          ;根目录所在的第一个扇区号
+DeltaSectorNo           equ 17          ;族号＋RootDirSectors+DeltaSectorNo=族号所对应的扇区编号
+SectorNoOfFAT1          equ 1           ;FAT1的第一个扇区编号
 
 ;************************************************************************************
 
@@ -69,14 +71,15 @@ LABEL_START:
     push word BaseOfLoader
     push word LoaderFileName      ;ds:si -> 所要寻找的文件名
     push ds
-    push word 14                  ;要读取的扇区总数
-    push word 19                  ;要读取的扇区的起始编号
-    call ReadFileInRoot
+    push word 14                  ;根目录扇区总数
+    push word 19                  ;根目录起始扇区编号
+    call ReadFileInRoot           ;从根目录中读取文件放到指定的内存缓冲区中
     add sp,12                     ;恢复栈
     cmp ax,1
     jnz NotFound
     mov dh,1
     call DispStr
+    jmp BaseOfLoader:OffsetOfLoader
     jmp $
     NotFound:
     mov dh,2
@@ -128,7 +131,7 @@ ReadSector:
 
     push bp
     mov bp,sp
-    sub esp,2
+    sub esp,2                  ;开辟两个字节的局部储存区
 
     mov byte [bp-2],cl         ;暂存要读取的扇区数
     push bx                    ;保存bx
@@ -189,7 +192,7 @@ SearchFileInSector:
 ;//////////////////////////////////////////////////////////////////////////
 ;函数名：ReadFileInRoot
 ;作用：  从根目录中读取文件放到指定的内存缓冲区中
-;参数：  第0个参数：根目录的起始扇区；第1个参数：要读取的扇区数；
+;参数：  第0个参数：根目录的起始扇区；第1个参数：根目录扇区总数；
 ;       第2个参数：文件名的段地址；  第3个参数：文件名的偏移地址；
 ;       第4个参数：缓冲区段地址；    第5个参数：缓冲区偏移地址。
 ;返回值：ax==0执行失败，ax==1执行成功，
@@ -215,16 +218,85 @@ ReadFileInRoot:
     jz StartReadFile           ;ax为1表示找到文件，es:di -> 根目录项
     add word [bp+4],1          ;下一个扇区
     loop NextSectort
-    mov ax,0
-    pop bp
-    ret                        ;失败返回
+    mov ax,0                   ;失败返回
+    jmp Return
 
     StartReadFile:
-    ;读取文件
-    mov ax,1
-    pop bp
-    ret                        ;成功返回
+    ;读取文件，此时es:bx所指向的缓冲区,es:di -> 根目录项
+    add di,01Ah
+    mov ax,word [es:di]         ;文件的第一个族号
+    .GoOn:
+    push ax                     ;暂存族号
+    add ax,RootDirSectors       ;
+    add ax,DeltaSectorNo        ;此时，ax为族号所对应的扇区号
+    mov cl,1
+    call ReadSector             ;读取一个扇区放到es:bx所指向的地址
+    pop ax                      ;当前族号,根据当前扇区的族号可在FAT中找到下一个扇区的族号
+    push bx                     ;暂存地址
+    push es
+    call GetFatEntry            ;找下一个族号
+    pop es                      ;还原地址
+    pop bx
+    cmp ax,0FFFh
+    jz .EndOfFile               ;读取文件结束
+    add bx,[BPB_BytesPerSec]    ;缓冲区指针前移一个扇区
+    jmp .GoOn
+    .EndOfFile:
+    mov ax,1                    ;成功返回
 
+    Return:
+    pop bp
+    ret
+
+;//////////////////////////////////////////////////////////////////////////
+
+;//////////////////////////////////////////////////////////////////////////
+;函数名：GetFatEntry
+;作用：  根据保存在ax中的族号在FAT中找到相应的条目，结果放在ax中，结果就是下一个族号
+;参数：  ax存放当前族号，es:bx指向数据缓冲区，调用前es:bx已经被暂存
+;返回值：ax=下一个族号
+;//////////////////////////////////////////////////////////////////////////
+GetFatEntry:
+    push bp
+    mov bp,sp
+    sub esp,2                  ;开辟两个字节的局部储存区用于储存奇偶值
+
+    push ax
+    mov ax,es
+    sub ax,0100h               ;在es:bx指向的数据缓冲区前开辟4K空间用于存放FAT
+    mov es,ax
+    pop ax
+    mov word [bp-2],0          ;默认为偶数
+    mov bx,3
+    mul bx
+    mov bx,2
+    div bx                     ;dx_ax *3/2 结果：商在ax，余数在dx
+    cmp dx,0
+    jz LABEL_EVEN              ;余数为0
+    mov word [bp-2],1          ;余数不为0则为奇数
+    LABEL_EVEN:
+    xor dx,dx
+    mov bx,[BPB_BytesPerSec]
+    div bx                     ;执行后，ax保存FATEntry项相对于FAT的扇区号
+                               ;       dx保存FATEntry在扇区内的偏移
+    push dx
+    mov bx,0                   ;es:bx -> （BaseOfLoader-100):00
+    add ax,SectorNoOfFAT1      ;计算出FATEntry所在的扇区
+    mov cl,2
+    call ReadSector            ;一次读两个扇区
+    pop dx
+    add bx,dx
+    mov ax,[es:bx]             ;一次读两个字节，一个FATEntry占1.5个字节
+    cmp word [bp-2],1          ;根据奇偶修正所得出的结果
+    jnz LABEL_EVEN_2
+    shr ax,4                   ;如果为奇数就右移4位
+    LABEL_EVEN_2:
+    and ax,0FFFh
+
+    add esp,2
+    pop bp
+
+    ret
 ;//////////////////////////////////////////////////////////////////////////
 
 ;*************************************************************************
