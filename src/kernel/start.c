@@ -8,10 +8,9 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
+#include "proto.h"
+#include "string.h"
 
-PUBLIC void* memcpy(void* pDst, void* pStr, int iSize);
-
-PUBLIC void  disp_str(char* pszInfo);
 
 PUBLIC u8    gdt_ptr[6];
 PUBLIC DESCRIPTOR gdt[GDT_SIZE];
