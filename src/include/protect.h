@@ -12,4 +12,8 @@ typedef struct s_descriptor /*共8字节*/
     u8  base_high;          /* */
 }DESCRIPTOR;
 
+/*中断向量*/
+#define INT_VECTOR_IRQ0 0x20
+#define INT_VECTOR_IRQ8 0x28
+
 #endif
