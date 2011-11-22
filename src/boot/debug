@@ -1,3 +1,0 @@
-#!/bin/sh
-cd Debuger
-java -jar peter-bochs-debugger20110614.jar bochs -f bochsrc
