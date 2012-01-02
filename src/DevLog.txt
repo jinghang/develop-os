@@ -1,0 +1,15 @@
+
+2012年1月3日 0:35
+在64位的机上用GCC和LD编译出32位的ELF文件方法方法：
+GCC和LD在生成文件格式的时候有参数-m
+=================================================================================================
+ld: unrecognised emulation mode: -o
+Supported emulations: elf_x86_64 elf_i386 i386linux elf64alpha alpha hppalinux
+elf64_ia64 m68kelf m68klinux elf32ppclinux elf32ppc elf32ppcsim elf64ppc
+elf_s390 elf64_s390 elf32_sparc sparclinux elf64_sparc sun4
+=================================================================================================
+
+例如 ld -s -m elf_i386 -o foobar foo.o bar.o
+     gcc -c  -m32 -o bar.o bar.c
+
+这样就可以生成32位的格式了
