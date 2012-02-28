@@ -13,3 +13,7 @@ elf_s390 elf64_s390 elf32_sparc sparclinux elf64_sparc sun4
      gcc -c  -m32 -o bar.o bar.c
 
 这样就可以生成32位的格式了
+
+
+2012年2月28日 星期二 21:20
+继续从P158学习中断
