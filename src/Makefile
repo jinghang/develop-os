@@ -45,7 +45,7 @@ realclean :
 disasm :
 	$(DASM) $(DASMFLAGS) $(OSKERNEL) > $ (DASMOUTPUT)
 
-buildimg :
+building :
 	dd if=bin/boot.bin of=bin/debug/a.img bs=512 count=1 conv=notrunc
 	sudo mount -o loop bin/debug/a.img /mnt/floppy
 	sudo cp -fv bin/loader.bin /mnt/floppy
