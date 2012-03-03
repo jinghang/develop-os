@@ -10,10 +10,7 @@
 #include "protect.h"
 #include "proto.h"
 #include "string.h"
-
-
-PUBLIC u8    gdt_ptr[6];
-PUBLIC DESCRIPTOR gdt[GDT_SIZE];
+#include "global.h"
 
 /* ********************************************************
 函数名：cstart()
@@ -33,5 +30,18 @@ PUBLIC void cstart()
     /*修改gdt_ptr使其指向新的GDT即gdt*/
     *((u16*)(&gdt_ptr[0])) = GDT_SIZE * sizeof(DESCRIPTOR) - 1;/*Limit of GDT*/
     *((u32*)(&gdt_ptr[2])) = (u32)&gdt;                        /*Base of GDT*/
+
+    /* idt_ptr[6] 共6个字节 ：0~15:Limit  16~47: Base
+        用作sidt/lidt的参数
+     */
+     u16* p_idt_limit = (u16*)(&idt_ptr[0]);
+     u32* p_idt_base = (u32*)(&idt_ptr[2]);
+     /* 填充IDI数据结构 */
+     *p_idt_limit = IDT_SIZE * sizeof(GATE) - 1;
+     *p_idt_base = (u32)&idt;
+
+     init_prot();
+
+     disp_str("-----\"cstart\" ends-----");
 
 }

@@ -16,4 +16,14 @@ typedef struct s_descriptor /*共8字节*/
 #define INT_VECTOR_IRQ0 0x20
 #define INT_VECTOR_IRQ8 0x28
 
+/* 门描述符 */
+typedef struct s_gate
+{
+    u16 offset_low;          /* offset low */
+    u16 selector;           /* selector */
+    u8 dcount;
+    u8 attr;                /* P(1) DPL(2) DT(1) TYPE(4) */
+    u16 offset_height;      /* offset height */
+}GATE;
+
 #endif

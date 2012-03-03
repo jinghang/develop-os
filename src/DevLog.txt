@@ -17,3 +17,11 @@ elf_s390 elf64_s390 elf32_sparc sparclinux elf64_sparc sun4
 
 2012年2月28日 星期二 21:20
 继续从P158学习中断
+2012/2/29 0:00
+未学完P158
+
+
+2012/3/4 星期日 1:18
+P163
+disp_int(int)
+错误：undefined reference to `__stack_chk_fail'

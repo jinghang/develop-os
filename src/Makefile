@@ -20,7 +20,7 @@ DASMFLAGS = -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 #This Program
 OSBOOT = bin/boot.bin bin/loader.bin
 OSKERNEL = bin/kernel.bin
-OBJS = bin/obj/kernel.o bin/obj/start.o bin/obj/kliba.o bin/obj/string.o bin/obj/i8259.o
+OBJS = bin/obj/kernel.o bin/obj/start.o bin/obj/kliba.o bin/obj/string.o bin/obj/i8259.o bin/obj/global.o bin/obj/protect.o bin/obj/klib.o
 DASMOUTPUT = diasm/kernel.bin.asm
 
 #All Phony Targets
@@ -78,6 +78,15 @@ bin/obj/string.o : lib/string.asm
 	$(ASM) $(ASMKFLAGS) -o $@ $<
 
 bin/obj/i8259.o : kernel/i8259.c include/type.h include/const.h include/protect.h include/proto.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+bin/obj/global.o : kernel/global.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+bin/obj/protect.o : kernel/protect.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+bin/obj/klib.o : lib/klib.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 
