@@ -12,10 +12,6 @@ typedef struct s_descriptor /*共8字节*/
     u8  base_high;          /* */
 }DESCRIPTOR;
 
-/*中断向量*/
-#define INT_VECTOR_IRQ0 0x20
-#define INT_VECTOR_IRQ8 0x28
-
 /* 门描述符 */
 typedef struct s_gate
 {
@@ -23,7 +19,75 @@ typedef struct s_gate
     u16 selector;           /* selector */
     u8 dcount;
     u8 attr;                /* P(1) DPL(2) DT(1) TYPE(4) */
-    u16 offset_height;      /* offset height */
+    u16 offset_high;      /* offset high */
 }GATE;
 
-#endif
+
+/* GDT descriptor index */
+/* LOADER 里面已经确定了 */
+#define INDEX_DUMMY     0
+#define INDEX_FLAT_C    1
+#define INDEX_FLAT_W    2
+#define INDEX_VIDEO     3
+
+/* Selector */
+/* LOADER 里面已经确定了 */
+#define SELECTOR_DUMMY      0
+#define SELECTOR_FLAT_C     0X08
+#define SELECTOR_FLAT_RW    0X10
+#define SELECTOR_VIDEO      (0X18+3)    /* RPL = 3 */
+
+#define SELECTOR_KERNEL_CS  SELECTOR_FLAT_C
+#define SELECTOR_KERNEL_DS  SELECTOR_FLAT_RW
+
+
+/* 描述符类型说明 */
+#define DA_32           0X4000  /*32位段*/
+#define DA_LIMIT_4K     0X8000  /* 段界限粒度为4K字节 */
+#define DA_DPL0         0X00    /* DPL = 0 */
+#define DA_DPL1         0X20    /* DPL = 1 */
+#define DA_DPL2         0X40    /* DPL = 2 */
+#define DA_DPL3         0X60    /* DPL = 3 */
+/* 存储段描述符类型值说明 */
+#define DA_DR           0X90    /* 存在的只读数据段类型值 */
+#define DA_DRW          0X92    /* 存在的可读写数据段属性值 */
+#define DA_DRWA         0X93    /* 存在的已访问的可读写的数据段类型值 */
+#define DA_C            0X98    /* 存在的只执行的代码段 */
+#define DA_CR           0X9A    /* 存在的可执行可读代码段 */
+#define DA_CC0          0X9C    /* 存在的只执行的一致的代码段 */
+#define DA_CC0R         0X9E    /* 存在的可执行的可读的一致的代码段 */
+/* 系统段描述符类型说明 */
+#define DA_LDT          0X82    /* 局部描述符表段类型值 */
+#define DA_TaskGate     0X85    /* 任务门类型值 */
+#define DA_386TSS       0X89    /* 可用386任务状态段类型值 */
+#define DA_386CGate     0X8C    /* 386 调用门类型值 */
+#define DA_386IGate     0X8E    /* 386 中断门类型值 */
+#define DA_386TGate     0X8F    /* 386 陷阱门类型值 */
+
+
+/* 中断向量 */
+#define INT_VECTOR_DIVIDE           0X0
+#define INT_VECTOR_DEBUG            0X1
+#define INT_VECTOR_NMI              0X2
+#define INT_VECTOR_BREAKPOINT       0X3
+#define INT_VECTOR_OVERFLOW         0X4
+#define INT_VECTOR_BOUNDS           0X5
+#define INT_VECTOR_INVAL_OP         0X6
+#define INT_VECTOR_COPROC_NOT       0X7
+#define INT_VECTOR_DOUBLE_FAULT     0X8
+#define INT_VECTOR_COPROC_SEG       0X9
+#define INT_VECTOR_INVAL_TSS        0XA
+#define INT_VECTOR_SEG_NOT          0XB
+#define INT_VECTOR_STACK_FAULT      0XC
+#define INT_VECTOR_PROTECTION       0XD
+#define INT_VECTOR_PAGE_FAULT       0XE
+#define INT_VECTOR_COPROC_ERR       0X10
+
+/*中断向量*/
+#define INT_VECTOR_IRQ0 0x20
+#define INT_VECTOR_IRQ8 0x28
+
+
+
+
+#endif /* _PROTECTED_H */

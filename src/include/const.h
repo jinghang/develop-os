@@ -12,6 +12,11 @@
 #define GDT_SIZE 128
 #define IDT_SIZE 256
 
+/* 权限 */
+#define PRIVILEGE_KRNL  0
+#define PRIVILEGE_TASK  1
+#define PRIVILEGE_USER  3
+
 /*8259A interrupt controller ports*/
 #define INT_M_CTL       0x20    /*IO port for interrupt controller           master*/
 #define INT_M_CTLMASK   0x21    /*setting bits in this port disables ints    master*/
