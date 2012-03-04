@@ -15,7 +15,7 @@ PUBLIC void init_8259A()
     out_byte(INT_M_CTL, 0x11);
 
     /*Slave 8259,ICW1*/
-    out_byte(INT_S_CTL,0x1);
+    out_byte(INT_S_CTL,0x11);
 
     /*Master 8259,ICW2 设置‘主8259’的中断入口地址为0x20*/
     out_byte(INT_M_CTLMASK,INT_VECTOR_IRQ0);

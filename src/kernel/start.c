@@ -21,7 +21,7 @@
 PUBLIC void cstart()
 {
     disp_str("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
-             "--------\"cstart\" gegins --------\n");
+             "--------\"cstart\" begins --------\n");
     /*将LOADER.BIN中的GDT复制到新的GDT中*/
     memcpy(&gdt,
            (void*)(*((u32*)(&gdt_ptr[2]))),
@@ -31,6 +31,7 @@ PUBLIC void cstart()
     *((u16*)(&gdt_ptr[0])) = GDT_SIZE * sizeof(DESCRIPTOR) - 1;/*Limit of GDT*/
     *((u32*)(&gdt_ptr[2])) = (u32)&gdt;                        /*Base of GDT*/
 
+
     /* idt_ptr[6] 共6个字节 ：0~15:Limit  16~47: Base
         用作sidt/lidt的参数
      */
@@ -39,6 +40,7 @@ PUBLIC void cstart()
      /* 填充IDI数据结构 */
      *p_idt_limit = IDT_SIZE * sizeof(GATE) - 1;
      *p_idt_base = (u32)&idt;
+
 
      init_prot();
 

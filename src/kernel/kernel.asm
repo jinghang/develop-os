@@ -17,6 +17,7 @@ SELECTOR_KERNEL_CS equ 8
 ;//////////////////////////////////////////////////////////////////
 extern cstart
 extern exception_handler
+extern spurious_irq
 
 ;/////////////////////////////////////////////////////////////////
 
@@ -25,6 +26,7 @@ extern exception_handler
 ;////////////////////////////////////////////////////////////////
 global _start
 
+;异常处理//////
 global divide_error
 global single_step_exception
 global nmi
@@ -41,6 +43,24 @@ global stack_exception
 global general_protection
 global page_fault
 global copr_error
+;硬件中断处理
+global hwint00
+global hwint01
+global hwint02
+global hwint03
+global hwint04
+global hwint05
+global hwint06
+global hwint07
+global hwint08
+global hwint09
+global hwint10
+global hwint11
+global hwint12
+global hwint13
+global hwint14
+global hwint15
+
 
 ;///////////////////////////////////////////////////////////////
 
@@ -65,10 +85,10 @@ StackTop:                          ;栈顶
 ;代码段
 ;///////////////////////////////////////////////////////////////
 [section .text]
-global _start
 
 _start:
     mov esp,StackTop
+    mov dword [disp_pos],0
     sgdt [gdt_ptr]
     call cstart
     lgdt [gdt_ptr]
@@ -78,13 +98,33 @@ _start:
     jmp SELECTOR_KERNEL_CS:csinit
 
 csinit:
-    push 0
-    popfd
+    ;push 0
+    ;popfd
+
+    ;ud2 ; 产生一个UD异常，Indtel内置异常
 
     ;jmp $
+    sti
     hlt ; 进入暂停模式，时钟信号也停，当有中断产生时再恢复执行
 
+
+;/////////////////////////////////////////////////////////////////////
+;中断和异常 -- 硬件中断
+;////////////////////////////////////////////////////////////////////
+
+;----------------------------------------
+%macro hwint_master 1
+    push %1
+    call spurious_irq
+    add esp, 4
+    hlt
+%endmacro
+;--------------------------------------
+
+
+;/////////////////////////////////////////////////////////////////////
 ;中断和异常 -- 异常
+;////////////////////////////////////////////////////////////////////
 divide_error:
     push 0xFFFFFFFF ; no err code
     push 0          ; vector_no = 0
@@ -165,7 +205,9 @@ copr_error:
 exception:
     call exception_handler
     add esp, 4*2    ;让栈顶指向 EIP， 栈中从顶向下依次是：EIP、CS、EFLAGS
-    hlt             ;休眠等等中断
+    jmp 0x40:0
+    jmp $
+    ;hlt             ;休眠等等中断
 
 
 ;////////////////////////////////////////////////////////////////
