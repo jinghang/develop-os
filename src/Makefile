@@ -87,7 +87,7 @@ bin/obj/protect.o : kernel/protect.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 bin/obj/klib.o : lib/klib.c
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -fno-stack-protector -o $@ $<
 
 
 

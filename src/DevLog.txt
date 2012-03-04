@@ -25,3 +25,14 @@ elf_s390 elf64_s390 elf32_sparc sparclinux elf64_sparc sun4
 P163
 disp_int(int)
 错误：undefined reference to `__stack_chk_fail'
+
+2012/3/4 sun 10:05
+在GCC的编译加上 错误：-fno-stack-protector 可解决
+错误：undefined reference to `__stack_chk_fail'
+
+2012/3/4 sun 23:48
+P166 kernel.asm  无法解决 hlt 指令使宿主死机的问题
+未完成中断处理函数，已完成异常处理。
+
+
+
