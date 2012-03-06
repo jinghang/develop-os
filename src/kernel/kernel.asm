@@ -119,7 +119,81 @@ csinit:
     add esp, 4
     hlt
 %endmacro
-;--------------------------------------
+;---------------------------------------
+
+ALIGN 16
+hwint00:        ; Interrupt routine for irq 0 (the clock)
+    hwint_master 0
+
+ALIGN 16
+hwint01:        ; irq 1 (keybord)
+    hwint_master 1
+
+ALIGN 16
+hwint02:        ; irq 2 (cascade)
+    hwint_master 2
+
+ALIGN 16
+hwint03:        ; irq 3, second serial
+    hwint_master 3
+
+ALIGN 16
+hwint04:        ; irq 4, first serial
+    hwint_master 4
+
+ALIGN 16
+hwint05:        ; irq 5, XT winchester
+    hwint_master 5
+
+ALIGN 16
+hwint06:        ; irq 6, floppy
+    hwint_master 6
+
+ALIGN 16
+hwint07:        ; irq 7, printer
+    hwint_master 7
+
+
+;------------------------------------------------
+%macro hwint_slave 1
+    push %1
+    call spurious_irq
+    add esp, 4
+    hlt
+%endmacro
+;------------------------------------------------
+
+ALIGN 16
+hwint08:        ; irq 8, realtime clock
+    hwint_slave 8
+
+ALIGN 16
+hwint09:        ; irq 9, irq 2 redirected
+    hwint_slave 9
+
+ALIGN 16
+hwint10:        ; irq 10
+    hwint_slave 10
+
+ALIGN 16
+hwint11:        ; irq 11
+    hwint_slave 11
+
+ALIGN 16
+hwint12:        ; irq 12
+    hwint_slave 12
+
+ALIGN 16
+hwint13:        ; irq 13 , FPU exception
+    hwint_slave 13
+
+ALIGN 16
+hwint14:        ; irq 14, AT winchester
+    hwint_slave 14
+
+ALIGN 16
+hwint15:        ; irq 15
+    hwint_slave 15
 
 
 ;/////////////////////////////////////////////////////////////////////
@@ -205,9 +279,7 @@ copr_error:
 exception:
     call exception_handler
     add esp, 4*2    ;让栈顶指向 EIP， 栈中从顶向下依次是：EIP、CS、EFLAGS
-    jmp 0x40:0
-    jmp $
-    ;hlt             ;休眠等等中断
+    hlt             ;休眠等等中断
 
 
 ;////////////////////////////////////////////////////////////////

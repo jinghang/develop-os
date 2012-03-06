@@ -36,8 +36,20 @@ PUBLIC void init_8259A()
     out_byte(INT_S_CTLMASK,0x1);
 
     /* Mask 8258 OCW1 */
-    out_byte(INT_M_CTLMASK,0xFF);
+    out_byte(INT_M_CTLMASK,0xFD);
 
     /* Slave 8259 OCW1 */
     out_byte(INT_S_CTLMASK,0xFF);
 }
+
+/*===========================================================
+*        spurious_irq
+=============================================================*/
+PUBLIC void spurious_irq(int irq)
+{
+    disp_str("spurious_irq:");
+    disp_int(irq);
+    disp_str("\n");
+}
+
+
