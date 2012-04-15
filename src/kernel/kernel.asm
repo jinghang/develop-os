@@ -123,7 +123,8 @@ csinit:
 
 ALIGN 16
 hwint00:        ; Interrupt routine for irq 0 (the clock)
-    hwint_master 0
+    ;hwint_master 0
+    iretd
 
 ALIGN 16
 hwint01:        ; irq 1 (keybord)

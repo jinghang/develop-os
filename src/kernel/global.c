@@ -7,3 +7,6 @@
 #include "protect.h"
 #include "proto.h"
 #include "global.h"
+#include "proc.h"
+
+PUBLIC PROCESS proc_table[NR_TASKS];

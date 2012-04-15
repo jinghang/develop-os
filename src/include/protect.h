@@ -30,6 +30,9 @@ typedef struct s_gate
 #define INDEX_FLAT_W    2
 #define INDEX_VIDEO     3
 
+#define INDEX_TSS       4
+#define INDEX_LDT_FIRST 5
+
 /* Selector */
 /* LOADER 里面已经确定了 */
 #define SELECTOR_DUMMY      0
@@ -37,8 +40,27 @@ typedef struct s_gate
 #define SELECTOR_FLAT_RW    0X10
 #define SELECTOR_VIDEO      (0X18+3)    /* RPL = 3 */
 
+#define SELECTOR_TSS        0x20        /* TSS */
+#define SELECTOR_LDT_FIRST  0x28
+
 #define SELECTOR_KERNEL_CS  SELECTOR_FLAT_C
 #define SELECTOR_KERNEL_DS  SELECTOR_FLAT_RW
+#define SELECTOR_KERNEL_GS  SELECTOR_VIDEO
+
+
+/* 每个任务有单独的LDT ，每个LDT中的描述符个数: */
+#define LDT_SIZE    2
+
+/* 选择子类型说明 SA : Selector Attribute */
+#define SA_RPL_MASK 0xFFFC
+#define SA_RPL0     0
+#define SA_RPL1     1
+#define SA_RPL2     2
+#define SA_RPL3     3
+
+#define SA_TI_MASK  0xFFFB
+#define SA_TIG      0
+#define SA_TIL      4
 
 
 /* 描述符类型说明 */
@@ -87,7 +109,8 @@ typedef struct s_gate
 #define INT_VECTOR_IRQ0 0x20
 #define INT_VECTOR_IRQ8 0x28
 
-
-
+/* 宏 */
+/* 线性地址－> 物理地址 */
+#define vir2phys(seg_base, vir) (u32)(((u32)seg_base) + (u32)(vir))
 
 #endif /* _PROTECTED_H */

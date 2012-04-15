@@ -157,6 +157,14 @@ PUBLIC void init_prot()
     init_idt_desc(INT_VECTOR_IRQ8 + 7,  DA_386IGate,
                   hwint15,              PRIVILEGE_KRNL);
 
+    /* 填充 GDT 中 LDT 的描述符  */
+    init_descriptor(
+        &gdt[INDEX_LDT_FIRST],
+        vir2phys(seg2phys(SELECTOR_KERNEL_DS), proc_table[0].ldts),
+        LDT_SIZE * sizeof(DESCRIPTOR) - 1,
+        DA_LDT
+                    );
+
 }
 
 /*==============================================================
@@ -174,6 +182,32 @@ PRIVATE void init_idt_desc(unsigned char vector, u8 desc_type,
     p_gate->offset_high = (base >> 16) & 0xFFFF;
 }
 
+/*================================================================
+**由段名得到线性地址
+**================================================================*/
+PUBLIC u32 set2Phys(u16 seg)
+{
+    DESCRIPTOR* p_dest = &gdt[seg >> 3];
+    return (p_dest->base_high << 24 | p_dest->base_mid << 16 | p_dest->base_low);
+}
+
+/*================================================================
+** 初始化段描述符
+**================================================================*/
+PRIVATE void init_descriptor(DESCRIPTOR *p_desc, u32 base, u32 limit, u16 atribute)
+{
+    p_desc->limit_low   = limit & 0x0FFFF;
+    p_desc->base_low    = base & 0x0FFFF;
+    p_desc->base_mid    = (base >> 16) & 0x0FF;
+    p_desc->attr1       = attribute & 0xFF;
+    p_desc->limit_high_attr2 = ((limit >> 16) & 0x0F) | (attribute >> 8) & 0xF0;
+    p_desc->base_high   = (base >> 24) & 0x0FF;
+}
+
+
+/*==================================================================
+** 异常处理
+**=================================================================*/
 PUBLIC void exception_handler(int vec_no,int err_code,int eip,int cs,int eflags)
 {
     int i;
