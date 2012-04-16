@@ -3,6 +3,7 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
+#include "proc.h"
 #include "global.h"
 #include "proto.h"
 
@@ -10,8 +11,8 @@
 /***************************************************************
 *本文件内函数声明
 ***************************************************************/
-PRIVATE void init_idt_desc(unsigned char vector, u8 desc_type,
-                           int_handler handler, unsigned char privilege);
+PRIVATE void init_idt_desc(unsigned char vector, u8 desc_type, int_handler handler, unsigned char privilege);
+PRIVATE void init_descriptor(DESCRIPTOR * p_desc, u32 base, u32 limit, u16 attribute);
 
 /*中断处理函数*/
 /*异常中断*/
@@ -157,6 +158,17 @@ PUBLIC void init_prot()
     init_idt_desc(INT_VECTOR_IRQ8 + 7,  DA_386IGate,
                   hwint15,              PRIVILEGE_KRNL);
 
+    /* 填充 GDT 中 TSS 的描述符 */
+    memset(&tss, 0, sizeof(tss));
+    tss.ss0 = SELECTOR_KERNEL_DS;
+    init_descriptor(
+        &gdt[INDEX_TSS],
+        vir2phys(seg2phys(SELECTOR_KERNEL_DS),&tss),
+        sizeof(tss)-1,
+        DA_386TSS
+                    );
+    tss.iobase = sizeof(tss);
+
     /* 填充 GDT 中 LDT 的描述符  */
     init_descriptor(
         &gdt[INDEX_LDT_FIRST],
@@ -194,7 +206,7 @@ PUBLIC u32 set2Phys(u16 seg)
 /*================================================================
 ** 初始化段描述符
 **================================================================*/
-PRIVATE void init_descriptor(DESCRIPTOR *p_desc, u32 base, u32 limit, u16 atribute)
+PRIVATE void init_descriptor(DESCRIPTOR *p_desc, u32 base, u32 limit, u16 attribute)
 {
     p_desc->limit_low   = limit & 0x0FFFF;
     p_desc->base_low    = base & 0x0FFFF;

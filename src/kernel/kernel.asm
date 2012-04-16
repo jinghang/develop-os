@@ -10,7 +10,7 @@
 ;建立时间: 2011-11-13
 ;******************************************************************
 
-SELECTOR_KERNEL_CS equ 8
+%include "sconst.inc"
 
 ;//////////////////////////////////////////////////////////////////
 ;导入函数
@@ -18,6 +18,7 @@ SELECTOR_KERNEL_CS equ 8
 extern cstart
 extern exception_handler
 extern spurious_irq
+extern kernel_main
 
 ;/////////////////////////////////////////////////////////////////
 
@@ -70,6 +71,8 @@ global hwint15
 extern gdt_ptr
 extern idt_ptr
 extern disp_pos
+extern p_proc_ready
+extern tss
 
 ;/////////////////////////////////////////////////////////////////
 
@@ -103,9 +106,15 @@ csinit:
 
     ;ud2 ; 产生一个UD异常，Indtel内置异常
 
+    xor eax, eax
+    mov ax, SELECTOR_TSS
+    ltr ax      ;加载TSS
+
+    jmp kernel_main
+
     ;jmp $
-    sti
-    hlt ; 进入暂停模式，时钟信号也停，当有中断产生时再恢复执行
+    ;sti
+    ;hlt ; 进入暂停模式，时钟信号也停，当有中断产生时再恢复执行
 
 
 ;/////////////////////////////////////////////////////////////////////
@@ -284,3 +293,26 @@ exception:
 
 
 ;////////////////////////////////////////////////////////////////
+
+;/////////////////////////////////////////////////////////////////////
+; restart
+;////////////////////////////////////////////////////////////////////
+restart:
+    mov esp, [p_proc_ready]
+    lldt [esp+P_LDT_SEL]
+    lea eax, [esp + P_STACKTOP]
+    mov dword [tss + TSS3_S_SP0], eax
+
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    popad
+
+    add esp, 4
+
+    iretd
+
+
+
+

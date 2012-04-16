@@ -2,6 +2,7 @@
 #define _GLOBAL_H
 
 
+
 /*EXTERN is defined as extern except in global.c*/
 
 #ifdef GLOBAL_VARIABLES_HERE
@@ -14,5 +15,11 @@ EXTERN u8           gdt_ptr[6];     /*0~15:Limit 16~47:Base*/
 EXTERN DESCRIPTOR   gdt[GDT_SIZE];
 EXTERN u8           idt_ptr[6];     /* 0~15:Limit 16~47:Base*/
 EXTERN GATE         idt[IDT_SIZE];
+
+EXTERN TSS tss;
+EXTERN PROCESS* p_proc_ready;
+
+extern PROCESS proc_table[];
+extern char task_stack[];
 
 #endif //_GLOBAL_H
