@@ -20,7 +20,7 @@ DASMFLAGS = -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 #This Program
 OSBOOT = bin/boot.bin bin/loader.bin
 OSKERNEL = bin/kernel.bin
-OBJS = bin/obj/kernel.o bin/obj/start.o bin/obj/kliba.o bin/obj/string.o bin/obj/i8259.o bin/obj/global.o bin/obj/protect.o bin/obj/klib.o
+OBJS = bin/obj/kernel.o bin/obj/start.o bin/obj/kliba.o bin/obj/string.o bin/obj/i8259.o bin/obj/global.o bin/obj/protect.o bin/obj/klib.o bin/obj/main.o bin/obj/clock.o
 DASMOUTPUT = diasm/kernel.bin.asm
 
 #All Phony Targets
@@ -65,13 +65,13 @@ bin/loader.bin : boot/loader.asm boot/include/lib.inc boot/include/pm.inc boot/i
 $(OSKERNEL) : $(OBJS)
 	$(LD) $(LDFLAGS) -o $(OSKERNEL) $(OBJS)
 
-bin/obj/kernel.o : kernel/kernel.asm
+bin/obj/kernel.o : kernel/kernel.asm include/sconst.inc
 	$(ASM) $(ASMKFLAGS) -o $@ $<
 
-bin/obj/start.o : kernel/start.c include/type.h include/const.h include/protect.h include/proto.h include/string.h
+bin/obj/start.o : kernel/start.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-bin/obj/kliba.o : lib/kliba.asm
+bin/obj/kliba.o : lib/kliba.asm include/global.h
 	$(ASM) $(ASMKFLAGS) -o $@ $<
 
 bin/obj/string.o : lib/string.asm
@@ -80,15 +80,18 @@ bin/obj/string.o : lib/string.asm
 bin/obj/i8259.o : kernel/i8259.c include/type.h include/const.h include/protect.h include/proto.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-bin/obj/global.o : kernel/global.c
+bin/obj/global.o : kernel/global.c include/global.h include/type.h include/const.h include/protect.h include/proto.h include/proc.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-bin/obj/protect.o : kernel/protect.c
+bin/obj/protect.o : kernel/protect.c include/const.h include/protect.h include/type.h include/proc.h include/global.h include/proto.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-bin/obj/klib.o : lib/klib.c
+bin/obj/klib.o : lib/klib.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
 	$(CC) $(CFLAGS) -fno-stack-protector -o $@ $<
 
-
+bin/obj/main.o : kernel/main.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
+	$(CC) $(CFLAGS) -o $@ $<
+bin/obj/clock.o : kernel/clock.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
+	$(CC) $(CFLAGS) -o $@ $<
 
 

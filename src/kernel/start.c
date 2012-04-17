@@ -45,6 +45,6 @@ PUBLIC void cstart()
 
      init_prot();
 
-     disp_str("-----\"cstart\" ends-----");
+     disp_str("-----\"cstart\" ends-----\n");
 
 }
