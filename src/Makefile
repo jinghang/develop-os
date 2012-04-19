@@ -71,13 +71,13 @@ bin/obj/kernel.o : kernel/kernel.asm include/sconst.inc
 bin/obj/start.o : kernel/start.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-bin/obj/kliba.o : lib/kliba.asm include/global.h
+bin/obj/kliba.o : lib/kliba.asm include/global.h include/sconst.inc
 	$(ASM) $(ASMKFLAGS) -o $@ $<
 
 bin/obj/string.o : lib/string.asm
 	$(ASM) $(ASMKFLAGS) -o $@ $<
 
-bin/obj/i8259.o : kernel/i8259.c include/type.h include/const.h include/protect.h include/proto.h
+bin/obj/i8259.o : kernel/i8259.c include/type.h include/const.h include/protect.h include/proto.h include/proc.h include/global.h
 	$(CC) $(CFLAGS) -o $@ $<
 
 bin/obj/global.o : kernel/global.c include/global.h include/type.h include/const.h include/protect.h include/proto.h include/proc.h

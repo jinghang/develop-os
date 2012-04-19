@@ -4,6 +4,8 @@
 #include "const.h"
 #include "protect.h"
 #include "proto.h"
+#include "proc.h"
+#include "global.h"
 
 /* *******************************************************************
  PUBLIC void init_8259A()
@@ -36,10 +38,16 @@ PUBLIC void init_8259A()
     out_byte(INT_S_CTLMASK,0x1);
 
     /* Mask 8259 OCW1 */
-    out_byte(INT_M_CTLMASK,0xFE);
+    out_byte(INT_M_CTLMASK,0xFF);
 
     /* Slave 8259 OCW1 */
     out_byte(INT_S_CTLMASK,0xFF);
+
+    int i;
+    for(i = 0; i < NR_IRQ; i++)
+    {
+        irq_table[i] = spurious_irq;
+    }
 }
 
 /*===========================================================
@@ -52,4 +60,12 @@ PUBLIC void spurious_irq(int irq)
     disp_str("\n");
 }
 
+/*======================================================================*
+                           put_irq_handler
+ *======================================================================*/
+PUBLIC void put_irq_handler(int irq, irq_handler handler)
+{
+	disable_irq(irq);
+	irq_table[irq] = handler;
+}
 
