@@ -32,6 +32,14 @@
 #define INT_S_CTL       0xA0    /*IO port for second interrupt controller    slave*/
 #define INT_S_CTLMASK   0xA1    /*setting bits in this port disables ints    slave*/
 
+/* 8253/8254 Programmable Interval Timer */
+#define TIMER0          0x40    /* Timer0 端号 */
+#define TIMER_MODE      0x43    /* 8253模式寄存器端口号 */
+#define RATE_GENERATOR  0x34    /* 要写到模式寄存器中的数据 */
+
+#define TIMER_FREQ      1193182L    /* 计数器的输入频率 */
+#define HZ              100     /* 计数器输入频率 */
+
 /* Hardware interrupts */
 #define NR_IRQ          16  /* Number of IRQs */
 #define	CLOCK_IRQ       0
@@ -44,5 +52,8 @@
 #define	FLOPPY_IRQ	    6	/* floppy disk */
 #define	PRINTER_IRQ	    7
 #define	AT_WINI_IRQ	    14	/* at winchester */
+
+/* system call */
+#define NR_SYS_CALL     1
 
 #endif

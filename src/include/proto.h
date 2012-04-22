@@ -29,5 +29,20 @@ PUBLIC void spurious_irq(int irq);
 
 /* clock.c */
 PUBLIC void clock_handler(int irq);
+PUBLIC void milli_delay(int milli_sec);
+PUBLIC void init_clock();
+
+/* keyboard.c */
+PUBLIC void init_keyboard();
+
+/* 以下是系统调用相关 */
+
+/* proc.c */
+PUBLIC int sys_get_ticks();         /* 系统中断向量表中的函数 */
+
+/* syscall.asm */
+PUBLIC void sys_call();             /* 系统调用中断统一入口 */
+PUBLIC int  get_ticks();            /* 引发中断 */
+
 
 #endif

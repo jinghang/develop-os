@@ -20,10 +20,12 @@ extern exception_handler
 extern spurious_irq
 extern kernel_main
 extern disp_str
+extern disp_int
 extern delay
 extern k_reenter
 extern clock_handler
 extern irq_table
+extern sys_call_table
 
 ;/////////////////////////////////////////////////////////////////
 
@@ -67,6 +69,9 @@ global hwint12
 global hwint13
 global hwint14
 global hwint15
+
+; 系统调用
+global sys_call
 
 
 ;///////////////////////////////////////////////////////////////
@@ -176,16 +181,7 @@ csinit:
 ;时钟中断例程
 ALIGN 16
 hwint00:        ; Interrupt routine for irq 0 (the clock)
-
-    call save
-    sti             ;开中断
-
-    push 0
-    call clock_handler
-    add esp, 4
-
-    cli             ;关中断
-    ret
+    hwint_master 0
 
 ALIGN 16
 hwint01:        ; irq 1 (keybord)
@@ -360,19 +356,34 @@ save:
     mov ds, dx
     mov es, dx
 
-    mov eax, esp            ; eax == 进程表首地址
+    mov esi, esp            ; esi == 进程表首地址
 
     inc dword [k_reenter]               ;k_reenter++;
     cmp dword [k_reenter], 0            ;if(k_reenter == 0)
     jne .1                              ;{
     mov esp, StackTop                   ;   mov esp, StackTop  //切换到内核栈
     push restart                        ;   push restart
-    jmp [eax + RETADR - P_STACKBASE]    ;   return;
+    jmp [esi + RETADR - P_STACKBASE]    ;   return;
                                         ;}
     .1:                                 ;else{ //已经在内核栈，不需要切换
     push restart_reenter                ;   push restart_reenter;
-    jmp [eax +RETADR - P_STACKBASE]     ;   return ;
+    jmp [esi +RETADR - P_STACKBASE]     ;   return ;
                                         ;}
+
+; ====================================================================================
+;                                 sys_call
+; ====================================================================================
+sys_call:
+    call save
+
+    sti
+
+    call [sys_call_table + eax * 4]
+    mov  [esi + EAXREG - P_STACKBASE], eax  ; 返回值
+
+    cli
+
+    ret
 
 ;/////////////////////////////////////////////////////////////////////
 ; restart
