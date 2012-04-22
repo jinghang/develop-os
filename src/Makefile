@@ -20,7 +20,7 @@ DASMFLAGS = -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 #This Program
 OSBOOT = bin/boot.bin bin/loader.bin
 OSKERNEL = bin/kernel.bin
-OBJS = bin/obj/kernel.o bin/obj/start.o bin/obj/kliba.o bin/obj/string.o bin/obj/i8259.o bin/obj/global.o bin/obj/protect.o bin/obj/klib.o bin/obj/main.o bin/obj/clock.o
+OBJS = bin/obj/kernel.o bin/obj/start.o bin/obj/kliba.o bin/obj/string.o bin/obj/i8259.o bin/obj/global.o bin/obj/protect.o bin/obj/klib.o bin/obj/main.o bin/obj/clock.o bin/obj/syscall.o bin/obj/proc.o bin/obj/keyboard.o
 DASMOUTPUT = diasm/kernel.bin.asm
 
 #All Phony Targets
@@ -68,6 +68,9 @@ $(OSKERNEL) : $(OBJS)
 bin/obj/kernel.o : kernel/kernel.asm include/sconst.inc
 	$(ASM) $(ASMKFLAGS) -o $@ $<
 
+bin/obj/syscall.o : kernel/syscall.asm include/sconst.inc
+	$(ASM) $(ASMKFLAGS) -o $@ $<
+
 bin/obj/start.o : kernel/start.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
 	$(CC) $(CFLAGS) -o $@ $<
 
@@ -92,6 +95,12 @@ bin/obj/klib.o : lib/klib.c include/type.h include/const.h include/protect.h inc
 bin/obj/main.o : kernel/main.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
 	$(CC) $(CFLAGS) -o $@ $<
 bin/obj/clock.o : kernel/clock.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+bin/obj/proc.o : kernel/proc.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+bin/obj/keyboard.o : kernel/keyboard.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
 	$(CC) $(CFLAGS) -o $@ $<
 
 
