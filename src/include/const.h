@@ -40,6 +40,16 @@
 #define TIMER_FREQ      1193182L    /* 计数器的输入频率 */
 #define HZ              100     /* 计数器输入频率 */
 
+/* VGA */
+#define CRTC_ADDR_REG   0x3D4   //
+#define CRTC_DATA_REG   0x3D5   //
+#define START_ADDR_H    0xC     //
+#define START_ADDR_L    0xD     //
+#define CURSOR_H        0xE     //
+#define CURSOR_L        0xF     //
+#define V_MEM_BASE      0xB8000 //
+#define V_MEM_SIZE      0x8000  //
+
 /* Hardware interrupts */
 #define NR_IRQ          16  /* Number of IRQs */
 #define	CLOCK_IRQ       0
