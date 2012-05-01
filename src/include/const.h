@@ -1,6 +1,16 @@
 #ifndef _CONST_H
 #define _CONST_H
 
+// assert macro
+#define  ASSERT
+#ifdef ASSERT
+void assertion_failure(char* exp, char* file, char* base_file, int line);
+#define assert(exp) if (exp) ; \
+                    else assertion_failure(#exp, __FILE__, __BASE_FILE__, __LINE__)
+#else
+#define assert(exp)
+#endif
+
 /* EXTERN is defined as extern except in global.c */
 #define EXTERN extern
 
@@ -26,6 +36,9 @@
 #define RPL_TASK    SA_RPL1
 #define RPL_USER    SA_RPL3
 
+// TTY
+#define NR_CONSOLES 3          // count of console
+
 /*8259A interrupt controller ports*/
 #define INT_M_CTL       0x20    /*IO port for interrupt controller           master*/
 #define INT_M_CTLMASK   0x21    /*setting bits in this port disables ints    master*/
@@ -39,6 +52,13 @@
 
 #define TIMER_FREQ      1193182L    /* 计数器的输入频率 */
 #define HZ              100     /* 计数器输入频率 */
+
+//AT keyboard
+// 8042 ports
+#define KB_DATA         0x60
+#define KB_CMD          0x64
+#define LED_CODE        0xED
+#define KB_ACK          0xFA
 
 /* VGA */
 #define CRTC_ADDR_REG   0x3D4   //
@@ -64,6 +84,6 @@
 #define	AT_WINI_IRQ	    14	/* at winchester */
 
 /* system call */
-#define NR_SYS_CALL     1
+#define NR_SYS_CALL     2
 
 #endif

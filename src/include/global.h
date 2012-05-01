@@ -1,7 +1,8 @@
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
 
-
+#include "tty.h"
+#include "console.h"
 
 /*EXTERN is defined as extern except in global.c*/
 
@@ -22,9 +23,14 @@ EXTERN u32          ticks;
 EXTERN TSS          tss;
 EXTERN PROCESS*     p_proc_ready;
 
+EXTERN int          nr_current_console;
+
 extern PROCESS      proc_table[];
 extern char         task_stack[];
 extern TASK         task_table[];
+extern TASK         user_proc_table[];
 extern irq_handler  irq_table[];
+extern TTY          tty_table[];
+extern CONSOLE      console_table[];
 
 #endif //_GLOBAL_H

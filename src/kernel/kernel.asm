@@ -352,9 +352,14 @@ save:
     push es
     push fs
     push gs
+
+    mov esi, edx            ;保存edx，edx在syscall.asm被用到
+
     mov dx, ss
     mov ds, dx
     mov es, dx
+
+    mov edx, esi            ;恢复edx
 
     mov esi, esp            ; esi == 进程表首地址
 
@@ -378,7 +383,12 @@ sys_call:
 
     sti
 
+    push dword [p_proc_ready]
+    push edx
+    push ecx
+    push ebx
     call [sys_call_table + eax * 4]
+    add esp, 4*4
     mov  [esi + EAXREG - P_STACKBASE], eax  ; 返回值
 
     cli
