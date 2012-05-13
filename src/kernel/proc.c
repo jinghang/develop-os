@@ -229,19 +229,74 @@ PRIVATE int msg_send(struct proc* current, int dest, MESSAGE* m)
         panic(">>DEADLOCK<< %s->%s", sender->name, p_dest->name);
     }
 
-    if((p_dest->p_flags & RECEIVING) &&
+    if((p_dest->p_flags & RECEIVING) && // dest is waiting for the msg
        (p_dest->p_recvfrom == proc2pid(sender) || p_dest->p_recvfrom == ANY)){
 
         assert(p_dest->p_msg);
         assert(m);
 
-        phys_copy()
+        phys_copy(va2la(dest, p_dest->p_msg), va2la(proc2pid(sender), m), sizeof(MESSAGE));
+        p_dest->p_msg = 0;
+        p_dest->p_flags &= ~RECEVING; // dest has receive the msg
+        p_dest->p_recvfrom = NO_TASK;
+        unblock(p_dest);
+
+        assert(p_dest->p_flags == 0);
+        assert(p_dest->p_msg == 0);
+        assert(p_dest->recvfrom == NO_TASK);
+        assert(p_dest->p_sendto == NO_TASK);
+        assert(sender->p_flags == 0);
+        assert(sender->p_msg == 0);
+        assert(sender->recvfrom == NO_TASK);
+        assert(sender->p_sendto == NO_TASK);
     }
+    else{ // dest is not waiting for the msg
+        sender->p_flags |= SENDING;
+        assert(sender->p_flags == SENDING);
+        sender->p_sendto = dest;
+        sender->p_msg = m;
+
+        // append to the sending queue
+        struct proc* p;
+        if(p_dest->q_sending){
+            p = p_dest->q_sending;
+            while(p->next_sending){
+                p = p->next_sending;
+            }
+            p->next_sending = sender;
+        }
+        else{
+            p_dest->q_sending = sender;
+        }
+        sender->next_sending = 0;
+
+        block(sender);
+
+        assert(sender->p_flags == SENDING);
+        assert(sender->p_msg != 0);
+        assert(sender->p_recvfrom == NO_TASK);
+        assert(sender->p_sendto == dest);
+
+    }
+
 }
 
 
+/*===============================================================================
+  <Ring 0> Try to get a message from the src proc. If src is blocked sending
+  the message, copy the message from it and unblock src. Otherwise the caller
+  will be blocked.
 
+  @Param current The caller, the proc who wanna receive.
+  @Param src     From whom the message will be received.
+  @Param m       The message ptr to accept the message.
 
+  @return Zero if success.
+**=============================================================================*/
+PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
+{
+    //
+}
 
 
 
