@@ -23,7 +23,7 @@ typedef struct s_stackframe{
     u32 ss;
 }STACK_FRAME;
 
-typedef struct s_proc{
+typedef struct proc{
     STACK_FRAME regs;           /* process registers saved in stack frame */
     u16 ldt_sel;                /* gdt selector giving ldt base and limit */
     DESCRIPTOR ldts[LDT_SIZE];  /* local decriptors for code and data */
@@ -31,6 +31,13 @@ typedef struct s_proc{
     int priority;
     u32 pid;                    /* process id passed in from MM */
     char p_name[16];            /* name of the process */
+    int p_flags;                /* a proc is runnable if p_flags==0 */
+    MESSAGE* p_msg;
+    int p_recvfrom;
+    int p_sendto;
+    int has_int_msg;            /* nonzero if an interrupt occurred when the task is not ready to deal with it */
+    struct proc * q_sending;    /* queue of procs sending message to this proc */
+    struct proc * next_sending; /* next proc in the sending queue (q_sending) */
     int nr_tty;
 }PROCESS;
 
