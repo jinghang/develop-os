@@ -24,7 +24,7 @@ OBJS = bin/obj/kernel.o bin/obj/start.o bin/obj/kliba.o bin/obj/string.o \
        bin/obj/i8259.o bin/obj/global.o bin/obj/protect.o bin/obj/klib.o \
        bin/obj/main.o bin/obj/clock.o bin/obj/syscall.o bin/obj/proc.o \
        bin/obj/keyboard.o bin/obj/tty.o bin/obj/console.o \
-       bin/obj/printf.o bin/obj/vsprintf.o
+       bin/obj/printf.o bin/obj/vsprintf.o bin/obj/systask.o
 DASMOUTPUT = diasm/kernel.bin.asm
 
 #All Phony Targets
@@ -120,5 +120,8 @@ bin/obj/vsprintf.o : kernel/vsprintf.c include/type.h include/const.h include/st
 	$(CC) $(CFLAGS) -fno-stack-protector -o $@ $<
 
 bin/obj/misc.o : lib/misc.c include/type.h include/const.h include/string.h include/protect.h include/proc.h include/tty.h include/console.h include/global.h include/keyboard.h include/proto.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+bin/obj/systask.o : kernel/systask.c include/type.h include/const.h include/string.h include/protect.h include/proc.h include/tty.h include/console.h include/global.h include/keyboard.h include/proto.h
 	$(CC) $(CFLAGS) -o $@ $<
 
