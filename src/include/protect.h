@@ -79,7 +79,10 @@ typedef struct s_tss{
 
 
 /* 每个任务有单独的LDT ，每个LDT中的描述符个数: */
-#define LDT_SIZE    2
+#define LDT_SIZE        2
+// descriptor indices in LDT
+#define INDEX_LDT_C     0
+#define INDEX_LDT_RW    1
 
 /* 选择子类型说明 SA : Selector Attribute */
 #define SA_RPL_MASK 0xFFFC

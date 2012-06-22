@@ -14,12 +14,12 @@ PUBLIC void task_sys()
 {
     MESSAGE msg;
     while(1){
-        send_rec(RECEIVE, ANY, &msg);
+        send_recv(RECEIVE, ANY, &msg);
         int src = msg.source;
 
         switch(msg.type){
         case GET_TICKS:
-            msg.RECEIVE = ticks;
+            msg.RETVAL = ticks;
             send_recv(SEND, src, &msg);
             break;
         default:

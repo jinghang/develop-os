@@ -2,10 +2,12 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "proto.h"
+#include "tty.h"
+#include "console.h"
 #include "string.h"
 #include "proc.h"
 #include "global.h"
+#include "proto.h"
 
 
 PRIVATE void block(struct proc* p);
@@ -23,7 +25,7 @@ PUBLIC void schedule()
     int greatest_ticks = 0;
 
     while(!greatest_ticks){
-        for(p = proc_table; p < proc_table+NR_TASKS+NR_PROCS; p++){
+        for(p = &FIRST_PROC; p <= &LAST_PROC; p++){
             if(p->p_flags == 0){ //既不在发消息也不在等消息
                 if(p->ticks > greatest_ticks){
                     greatest_ticks = p->ticks;
@@ -33,7 +35,7 @@ PUBLIC void schedule()
         }
 
         if(!greatest_ticks){
-            for(p = proc_table; p < proc_table+NR_TASKS+NR_PROCS; p++){
+            for(p = &FIRST_PROC; p <= &LAST_PROC; p++){
                 if(p->p_flags == 0){ //既不在发消息也不在等消息
                     p->ticks = p->priority;
                 }
@@ -61,7 +63,7 @@ PUBLIC int sys_get_ticks()
 PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE* m, struct proc* p)
 {
     assert(k_reenter == 0); // make sure we are not in ring0
-    assert((src_dest >= 0 && src_dest < NR_TASKS + NR_PROCS)) ||
+    assert((src_dest >= 0 && src_dest < NR_TASKS + NR_PROCS) ||
            src_dest == ANY ||
            src_dest == INTERRUPT);
 
@@ -138,9 +140,9 @@ PUBLIC int send_recv(int function, int src_dest, MESSAGE* msg)
 
  @return the requird linear address.
 *=============================================================*/
-PUBLIC int ldt_set_linear(struct proc* p, int idx)
+PUBLIC int ldt_seg_linear(struct proc* p, int idx)
 {
-    struct descriptor* d = &p->ldts[idx];
+    DESCRIPTOR* d = &p->ldts[idx];
     return d->base_high << 24 | d->base_mid << 16 | d->base_low;
 }
 
@@ -172,7 +174,7 @@ PUBLIC void* va2la(int pid, void* va)
  <Ring 0~3> Clear up a MESSAGE by setting each byte to 0.
  @param p The message to be cleared.
 *==========================================================*/
-PUBLIC void reset_meg(MESSAGE* p)
+PUBLIC void reset_msg(MESSAGE* p)
 {
     memset(p, 0, sizeof(MESSAGE));
 }
@@ -191,7 +193,7 @@ PUBLIC void reset_meg(MESSAGE* p)
 *==========================================================*/
 PRIVATE void block(struct proc* p)
 {
-    assert(p->flags);
+    assert(p->p_flags);
     schedule();
 }
 
@@ -228,11 +230,11 @@ PRIVATE int deadlock(int src, int dest)
             if(p->p_sendto == src){
                 // print the chain
                 p = proc_table + dest;
-                printl("=_=%s", p->name);
+                printl("=_=%s", p->p_name);
                 do{
                     assert(p->p_msg);
                     p = proc_table + p->p_sendto;
-                    printl("->%s", p->name);
+                    printl("->%s", p->p_name);
                 }while(p != proc_table + src);
                 printl("=_=");
                 return 1;
@@ -267,7 +269,7 @@ PRIVATE int msg_send(struct proc* current, int dest, MESSAGE* m)
 
     // check for deadlock here
     if(deadlock(proc2pid(sender), dest)){
-        panic(">>DEADLOCK<< %s->%s", sender->name, p_dest->name);
+        panic(">>DEADLOCK<< %s->%s", sender->p_name, p_dest->p_name);
     }
 
     if((p_dest->p_flags & RECEIVING) && // dest is waiting for the msg
@@ -278,17 +280,17 @@ PRIVATE int msg_send(struct proc* current, int dest, MESSAGE* m)
 
         phys_copy(va2la(dest, p_dest->p_msg), va2la(proc2pid(sender), m), sizeof(MESSAGE));
         p_dest->p_msg = 0;
-        p_dest->p_flags &= ~RECEVING; // dest has receive the msg
+        p_dest->p_flags &= ~RECEIVING; // dest has receive the msg
         p_dest->p_recvfrom = NO_TASK;
         unblock(p_dest);
 
         assert(p_dest->p_flags == 0);
         assert(p_dest->p_msg == 0);
-        assert(p_dest->recvfrom == NO_TASK);
+        assert(p_dest->p_recvfrom == NO_TASK);
         assert(p_dest->p_sendto == NO_TASK);
         assert(sender->p_flags == 0);
         assert(sender->p_msg == 0);
-        assert(sender->recvfrom == NO_TASK);
+        assert(sender->p_recvfrom == NO_TASK);
         assert(sender->p_sendto == NO_TASK);
     }
     else{ // dest is not waiting for the msg
@@ -339,6 +341,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
     struct proc* p_who_wanna_recv = current;
     struct proc* p_from = 0;
     struct proc* prev = 0;
+    int copyok = 0;
 
     assert(proc2pid(p_who_wanna_recv) != src);
 
@@ -372,18 +375,18 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
         //p_who_wanna_recv is ready is ready to receive message from ANY proc,
         //we'll check the sending queue and pick the first proc in it.
         if(p_who_wanna_recv->q_sending){
-            p_from = p_who_wanna_recv->sending;
+            p_from = p_who_wanna_recv->q_sending;
             copyok = 1;
 
             assert(p_who_wanna_recv->p_flags == 0);
             assert(p_who_wanna_recv->p_msg == 0);
             assert(p_who_wanna_recv->p_recvfrom == NO_TASK);
-            assert(p_who_wanna_recv->sendto == NO_TASK);
-            assert(p_who_wanna_recv-q_sending != 0);
+            assert(p_who_wanna_recv->p_sendto == NO_TASK);
+            assert(p_who_wanna_recv->q_sending != 0);
             assert(p_from->p_flags == SENDING);
             assert(p_from->p_msg != 0);
             assert(p_from->p_recvfrom == NO_TASK);
-            assert(P_from->p_sendto == proc2pid(p_who_wanna_recv));
+            assert(p_from->p_sendto == proc2pid(p_who_wanna_recv));
         }
     }
     else if(src >= 0 && src <NR_TASKS + NR_PROCS){
@@ -462,7 +465,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
         p_who_wanna_recv->p_flags |= RECEIVING;
 
         p_who_wanna_recv->p_msg = m;
-        p_who_wanna_recv->p_recevfrom = src;
+        p_who_wanna_recv->p_recvfrom = src;
         block(p_who_wanna_recv);
 
         assert(p_who_wanna_recv->p_flags == RECEIVING);
@@ -477,8 +480,74 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
 }
 
 
+/*===========================================================================
+*
+**===========================================================================*/
+PUBLIC void dump_proc(struct proc* p)
+{
+    char info[STR_DEFAULT_LEN];
+    int  i;
+    int  text_color = MAKE_COLOR(GREEN, RED);
+    int  dump_len = sizeof(struct proc);
 
+    out_byte(CRTC_ADDR_REG, START_ADDR_H);
+    out_byte(CRTC_DATA_REG, 0);
+    out_byte(CRTC_ADDR_REG, START_ADDR_L);
+    out_byte(CRTC_DATA_REG, 0);
 
+    sprintf(info, "byte dump of proc_table[%d]:\n", p - proc_table);
+    disp_color_str(info, text_color);
+    for(i = 0; i < dump_len; i++){
+        sprintf(info, "%x.", ((unsigned char *)p)[i]);
+        disp_color_str(info, text_color);
+    }
+
+    disp_color_str("\n\n", text_color);
+    sprintf(info, "ANY: 0x.\n", ANY);
+    disp_color_str(info, text_color);
+    sprintf(info, "NO_TASK: 0x%x.\n", NO_TASK);
+    disp_color_str(info, text_color);
+    disp_color_str("\n", text_color);
+
+    sprintf(info, "ldt_sel: 0x%x.  ", p->ldt_sel); disp_color_str(info, text_color);
+	sprintf(info, "ticks: 0x%x.  ", p->ticks); disp_color_str(info, text_color);
+	sprintf(info, "priority: 0x%x.  ", p->priority); disp_color_str(info, text_color);
+	sprintf(info, "pid: 0x%x.  ", p->pid); disp_color_str(info, text_color);
+	sprintf(info, "name: %s.  ", p->p_name); disp_color_str(info, text_color);
+	disp_color_str("\n", text_color);
+	sprintf(info, "p_flags: 0x%x.  ", p->p_flags); disp_color_str(info, text_color);
+	sprintf(info, "p_recvfrom: 0x%x.  ", p->p_recvfrom); disp_color_str(info, text_color);
+	sprintf(info, "p_sendto: 0x%x.  ", p->p_sendto); disp_color_str(info, text_color);
+	sprintf(info, "nr_tty: 0x%x.  ", p->nr_tty); disp_color_str(info, text_color);
+	disp_color_str("\n", text_color);
+	sprintf(info, "has_int_msg: 0x%x.  ", p->has_int_msg); disp_color_str(info, text_color);
+}
+
+/*===========================================================================
+*
+**===========================================================================*/
+PUBLIC void dump_msg(const char * title, MESSAGE* m)
+{
+	int packed = 0;
+	printl("{%s}<0x%x>{%ssrc:%s(%d),%stype:%d,%s(0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x)%s}%s",  //, (0x%x, 0x%x, 0x%x)}",
+	       title,
+	       (int)m,
+	       packed ? "" : "\n        ",
+	       proc_table[m->source].p_name,
+	       m->source,
+	       packed ? " " : "\n        ",
+	       m->type,
+	       packed ? " " : "\n        ",
+	       m->u.m3.m3i1,
+	       m->u.m3.m3i2,
+	       m->u.m3.m3i3,
+	       m->u.m3.m3i4,
+	       (int)m->u.m3.m3p1,
+	       (int)m->u.m3.m3p2,
+	       packed ? "" : "\n",
+	       packed ? "" : "\n"/* , */
+		);
+}
 
 
 

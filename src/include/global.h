@@ -1,8 +1,6 @@
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
 
-#include "tty.h"
-#include "console.h"
 
 /*EXTERN is defined as extern except in global.c*/
 

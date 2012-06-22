@@ -3,13 +3,13 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "proto.h"
 #include "string.h"
 #include "proc.h"
-#include "global.h"
-#include "keyboard.h"
 #include "tty.h"
 #include "console.h"
+#include "global.h"
+#include "keyboard.h"
+#include "proto.h"
 
 #define TTY_FIRST (tty_table)
 #define TTY_END   (tty_table + NR_CONSOLES)
@@ -207,7 +207,7 @@ PUBLIC int sys_printx(int _unused1, int unused2, char* s, struct proc* p_proc)
             *v++ = *q++;
             *v++ = RED_CHAR;
             if(!*q){
-                while(((int)v - V_MEM_BASE) % (SCR_WIDTH * 16)){
+                while(((int)v - V_MEM_BASE) % (SCREEN_WIDTH * 16)){
                     v++; // *v++ = ' '
                     *v++ = GRAY_CHAR;
                 }

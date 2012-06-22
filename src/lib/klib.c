@@ -2,10 +2,13 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "proto.h"
+#include "tty.h"
+#include "console.h"
 #include "string.h"
 #include "proc.h"
 #include "global.h"
+#include "proto.h"
+
 
 PUBLIC char * itoa(char * str, int num)
 {

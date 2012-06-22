@@ -24,7 +24,8 @@ OBJS = bin/obj/kernel.o bin/obj/start.o bin/obj/kliba.o bin/obj/string.o \
        bin/obj/i8259.o bin/obj/global.o bin/obj/protect.o bin/obj/klib.o \
        bin/obj/main.o bin/obj/clock.o bin/obj/syscall.o bin/obj/proc.o \
        bin/obj/keyboard.o bin/obj/tty.o bin/obj/console.o \
-       bin/obj/printf.o bin/obj/vsprintf.o bin/obj/systask.o
+       bin/obj/printf.o bin/obj/vsprintf.o bin/obj/systask.o \
+       bin/obj/misc.o
 DASMOUTPUT = diasm/kernel.bin.asm
 
 #All Phony Targets
@@ -97,18 +98,19 @@ bin/obj/klib.o : lib/klib.c include/type.h include/const.h include/protect.h inc
 	$(CC) $(CFLAGS) -fno-stack-protector -o $@ $<
 
 bin/obj/main.o : kernel/main.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -fno-stack-protector -o $@ $<
+
 bin/obj/clock.o : kernel/clock.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
 	$(CC) $(CFLAGS) -o $@ $<
 
 bin/obj/proc.o : kernel/proc.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -fno-stack-protector -o $@ $<
 
 bin/obj/keyboard.o : kernel/keyboard.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h include/keyboard.h include/keymap.h
 	$(CC) $(CFLAGS) -fno-stack-protector -o $@ $<
 
 bin/obj/tty.o : kernel/tty.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h include/keyboard.h include/tty.h include/console.h
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -fno-stack-protector -o $@ $<
 
 bin/obj/console.o : kernel/console.c include/type.h include/const.h include/protect.h include/proto.h include/string.h include/proc.h include/global.h include/keyboard.h include/tty.h include/console.h
 	$(CC) $(CFLAGS) -o $@ $<

@@ -114,11 +114,11 @@ void assertion_failure(char* exp, char* file, char* base_file, int line);
 // tasks
 // 注意 TASK_XXX 的定义要与 global.c 中的对应
 #define INVALID_DRIVER -20
-#define INTERUPT       -10
+#define INTERRUPT       -10
 #define TASK_TTY        0
 #define TASK_SYS        1
-#define ANY             (NR_TASKS + NR_PROCES + 10)
-#define NO_TASK         (NR_TASKS + NR_PROCES + 20)
+#define ANY             (NR_TASKS + NR_PROCS + 10)
+#define NO_TASK         (NR_TASKS + NR_PROCS + 20)
 
 /* system call */
 #define NR_SYS_CALL     3
@@ -139,6 +139,6 @@ enum msgtype{
     GET_TICKS,     // sys task
 };
 
-#define RETVAL          u.m3.m3il
+#define RETVAL          u.m3.m3i1
 
 #endif //_CONST_H

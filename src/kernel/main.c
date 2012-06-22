@@ -2,10 +2,12 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "proto.h"
-#include "string.h" //strcpy memset memcpy
+#include "string.h"
 #include "proc.h"
+#include "tty.h"
+#include "console.h"
 #include "global.h"
+#include "proto.h"
 
 PUBLIC int kernel_main()
 {
@@ -20,6 +22,7 @@ PUBLIC int kernel_main()
     u8          privilege;
     u8          rpl;
     int         eflags;
+    int         prio;
 
     for(i = 0; i < NR_TASKS+NR_PROCS; i++){
 
@@ -28,16 +31,18 @@ PUBLIC int kernel_main()
             privilege   = PRIVILEGE_TASK;
             rpl         = RPL_TASK;
             eflags      = 0x1202; // IF=1, IOPL=1, bit 2 is always 1
+            prio        = 15;
         }
         else{ // 用户进程
             p_task      = user_proc_table + (i - NR_TASKS);
             privilege   = PRIVILEGE_USER;
             rpl         = RPL_USER;
             eflags      = 0x0202; // IF=1, bit 2 is always 1
+            prio        = 5;
         }
 
         strcpy(p_proc->p_name, p_task->name);   //进程名
-        p_proc->pid = i;
+        p_proc->pid = i;                        //pid
 
         p_proc->ldt_sel = selector_ldt;
 
@@ -59,20 +64,25 @@ PUBLIC int kernel_main()
 
         p_proc->nr_tty = 0;
 
+        p_proc->p_flags = 0;
+        p_proc->p_msg = 0;
+        p_proc->p_recvfrom = NO_TASK;
+        p_proc->p_sendto = NO_TASK;
+        p_proc->has_int_msg = 0;
+        p_proc->q_sending = 0;
+        p_proc->next_sending = 0;
+
+        p_proc->ticks = p_proc->priority = prio;
+
         p_task_stack -= p_task->stacksize;
         p_proc++;
         p_task++;
         selector_ldt += 1 << 3;
     }
 
-    proc_table[0].ticks = proc_table[0].priority = 15;
-    proc_table[1].ticks = proc_table[1].priority =  5;
-    proc_table[2].ticks = proc_table[2].priority =  3;
-    proc_table[3].ticks = proc_table[3].priority = 16;
-
-    proc_table[1].nr_tty = 0;
-    proc_table[2].nr_tty = 1;
-    proc_table[3].nr_tty = 1;
+    proc_table[NR_TASKS + 0].nr_tty = 0;
+    proc_table[NR_TASKS + 1].nr_tty = 1;
+    proc_table[NR_TASKS + 2].nr_tty = 1;
 
     k_reenter = 0;
     ticks = 0;
@@ -94,7 +104,7 @@ PUBLIC int get_ticks()
     reset_msg(&msg);
     msg.type = GET_TICKS;
     send_recv(BOTH, TASK_SYS, &msg);
-    return msg.RECEIVE;
+    return msg.RETVAL;
 }
 
 void TestA()
@@ -102,6 +112,7 @@ void TestA()
     int i = 0;
     while(1){
         printf("<Ticks:%x>",get_ticks());
+        disp_str("A");
         milli_delay(500);
     }
 }
@@ -111,6 +122,7 @@ void TestB()
     int i = 0x1000;
     while(1){
         printf("B");
+        disp_str("B");
         milli_delay(500);
     }
 }
@@ -120,6 +132,7 @@ void TestC()
     int i = 0x2000;
     while(1){
         printf("C");
+        disp_str("C");
         milli_delay(500);
     }
 }

@@ -1,7 +1,6 @@
 #ifndef _PROC_H
 #define _PROC_H
 
-
 typedef struct s_stackframe{
     u32 gs;
     u32 fs;
@@ -53,7 +52,7 @@ typedef struct s_task{
 #define NR_TASKS 2
 #define NR_PROCS 3
 #define FIRST_PROC  proc_table[0]
-#define LAST_PROC   proc_table[NR_TASK + NR_PROCS -1]
+#define LAST_PROC   proc_table[NR_TASKS + NR_PROCS -1]
 
 /* stacks of tasks */
 #define STACK_SIZE_TESTA    0x8000
