@@ -10,6 +10,5 @@ int printf(const char* fmt, ...)
 	i = vsprintf(buf, fmt, arg);
 	buf[i] = 0;
 	printx(buf);
-
 	return i;
 }

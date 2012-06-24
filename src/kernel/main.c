@@ -91,11 +91,10 @@ PUBLIC int kernel_main()
 
     init_clock();
     init_keyboard();
-
     restart();
 
-    while(1){}
-
+    //while(1){}
+    __asm__ __volatile__("hlt");
 }
 
 PUBLIC int get_ticks()
@@ -112,8 +111,8 @@ void TestA()
     int i = 0;
     while(1){
         printf("<Ticks:%x>",get_ticks());
-        disp_str("A");
-        milli_delay(500);
+        //disp_str("A");
+        milli_delay(1000);
     }
 }
 
@@ -122,7 +121,7 @@ void TestB()
     int i = 0x1000;
     while(1){
         printf("B");
-        disp_str("B");
+        //disp_str("B");
         milli_delay(500);
     }
 }
@@ -132,7 +131,7 @@ void TestC()
     int i = 0x2000;
     while(1){
         printf("C");
-        disp_str("C");
+        //disp_str("C");
         milli_delay(500);
     }
 }

@@ -30,6 +30,8 @@ PUBLIC void task_tty()
         init_tty(p_tty);
     }
     select_console(0);
+
+    //此处会占用大量CPU资源
     while(1){
         for(p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++){
             tty_do_read(p_tty);
@@ -170,7 +172,6 @@ PUBLIC int sys_printx(int _unused1, int unused2, char* s, struct proc* p_proc)
 
     char reenter_err[] = "? k_reenter is incorrect for unknown reason";
     reenter_err[0] = MAG_CH_PANIC;
-
     /*
 	 * @note Code in both Ring 0 and Ring 1~3 may invoke printx().
 	 * If this happens in Ring 0, no linear-physical address mapping
@@ -217,7 +218,7 @@ PUBLIC int sys_printx(int _unused1, int unused2, char* s, struct proc* p_proc)
         __asm__ __volatile__("hlt");
     }
 
-    while((ch == *p++) != 0){
+    while((ch = *p++) != 0){
         if(ch == MAG_CH_PANIC || ch == MAG_CH_ASSERT){
             continue; // skip the magic char
         }
