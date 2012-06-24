@@ -2,6 +2,9 @@
 # how much memory the emulated machine will have
 megs: 32
 
+#cpu
+cpu: count=1, ips=100000000
+
 # filename of ROM images
 #romimage: file=/usr/share/bochs/BIOS-bochs-latest
 romimage: file=$BXSHARE/BIOS-bochs-latest
@@ -23,6 +26,9 @@ mouse: enabled=0
 
 # enable key mapping,using US layout as default.
 keyboard_mapping: enabled=1, map=/usr/share/bochs/keymaps/x11-pc-us.map
+
+#debug by gdb
+gdbstub: enabled=1, port=1234, text_base=0, data_base=0, bss_base=0
 
 #panic: action=fatal
 #error: action=report
