@@ -118,12 +118,11 @@ clock_int_msg   db  "^",0
 
 _start:
     mov esp,StackTop
-    mov dword [disp_pos],0
-    sgdt [gdt_ptr]
-    call cstart
-    lgdt [gdt_ptr]
-
-    lidt [idt_ptr]
+    mov dword [disp_pos],0  ;disp_pos定义在global.h
+    sgdt [gdt_ptr]          ;将gdtr寄存器中的值存到gdt_ptr所指的地址，gdt_ptr定义在global.h
+    call cstart             ;cstart定义在start.c
+    lgdt [gdt_ptr]          ;将；gdt_ptr所指向的地址的内容加载到gdtr寄存器
+    lidt [idt_ptr]          ;idt_ptr定义在global.h
 
     jmp SELECTOR_KERNEL_CS:csinit
 

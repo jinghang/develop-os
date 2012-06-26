@@ -166,7 +166,7 @@ PUBLIC void init_prot()
                   sys_call,             PRIVILEGE_USER);
 
     /* 填充 GDT 中 TSS 的描述符 */
-    memset(&tss, 0, sizeof(tss));
+    memset(&tss, 0, sizeof(tss));   //tss定义在global.h中
     tss.ss0 = SELECTOR_KERNEL_DS;
     init_descriptor(
         &gdt[INDEX_TSS],

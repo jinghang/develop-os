@@ -25,17 +25,20 @@ PUBLIC void cstart()
 {
     disp_str("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
              "--------\"cstart\" begins --------\n");
+
     /*将LOADER.BIN中的GDT复制到新的GDT中*/
-    memcpy(&gdt,
-           (void*)(*((u32*)(&gdt_ptr[2]))),
-           *((u16*)(&gdt_ptr[0]))+1
+    memcpy(&gdt,                            //目的地址
+           (void*)(*((u32*)(&gdt_ptr[2]))), //源地址，LOADBER.BIN中GDT的起始地址
+           *((u16*)(&gdt_ptr[0]))+1         //需要复制的字节数
            );
+
     /*修改gdt_ptr使其指向新的GDT即gdt*/
     *((u16*)(&gdt_ptr[0])) = GDT_SIZE * sizeof(DESCRIPTOR) - 1;/*Limit of GDT*/
     *((u32*)(&gdt_ptr[2])) = (u32)&gdt;                        /*Base of GDT*/
 
 
-    /* idt_ptr[6] 共6个字节 ：0~15:Limit  16~47: Base
+    /* 修改idt_ptr使其指向idt
+        idt_ptr[6] 共6个字节 ：0~15:Limit  16~47: Base
         用作sidt/lidt的参数
      */
      u16* p_idt_limit = (u16*)(&idt_ptr[0]);

@@ -48,7 +48,7 @@ PUBLIC void init_8259A()
     int i;
     for(i = 0; i < NR_IRQ; i++)
     {
-        irq_table[i] = spurious_irq;
+        irq_table[i] = spurious_irq;    //irq_table[]定义在global.c
     }
 }
 
